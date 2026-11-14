@@ -192,7 +192,12 @@ else:
             name = encoding[len('iconv:'):]
         else:
             name = encoding
-        if not name:
+        # glibc's iconv_open() drops the characters it does not accept in a
+        # charset name and opens the locale's charset for an empty one.
+        # Require an ASCII alphanumeric before any "/" (as in "//TRANSLIT")
+        # or ",", so that a name made only of such characters is unknown.
+        charset = name.partition('/')[0].partition(',')[0]
+        if not any(c.isascii() and c.isalnum() for c in charset):
             return None
         # Test if the encoding is supported by iconv.
         try:

@@ -3789,6 +3789,17 @@ class IconvTest(unittest.TestCase):
         self.assertRaises(LookupError, codecs.iconv_decode, 'no-such-enc-42', b'a')
         self.assertRaises(LookupError, codecs.lookup, 'iconv:no-such-enc-42')
 
+    def test_name_without_charset(self):
+        # glibc strips these names to an empty charset, which iconv_open()
+        # treats as the locale's charset.
+        names = ['!!!', '@', '()', ',', '/', '//TRANSLIT', '//abc',
+                 '\xe9', '한글']
+        with warnings_helper.check_warnings(('', DeprecationWarning)):
+            for name in names:
+                for encoding in (name, 'iconv:' + name):
+                    with self.subTest(encoding=encoding):
+                        self.assertRaises(LookupError, codecs.lookup, encoding)
+
     def test_roundtrip(self):
         cases = _ICONV_SINGLE_BYTE + [(enc, '日本語') for enc in _ICONV_MULTIBYTE]
         tested = False

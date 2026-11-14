@@ -1,0 +1,3 @@
+Encoding names that glibc's :c:func:`!iconv_open` reduces to an empty
+charset, such as ``"!!!"`` or ``"//TRANSLIT"``, now raise :exc:`LookupError`
+again instead of resolving to the iconv codec for the locale's charset.
