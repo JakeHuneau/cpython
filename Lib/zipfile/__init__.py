@@ -2536,6 +2536,10 @@ class ZipFile:
             raise ValueError(
                 "Attempt to write ZIP archive that was already closed")
         _check_compression(zinfo.compress_type)
+        if len(zinfo.comment) > ZIP_MAX_COMMENT:
+            raise ValueError(
+                f"ZipInfo comment is too long: {len(zinfo.comment)} bytes "
+                f"(maximum {ZIP_MAX_COMMENT})")
         if not self._allowZip64:
             requires_zip64 = None
             if len(self.filelist) >= ZIP_FILECOUNT_LIMIT:

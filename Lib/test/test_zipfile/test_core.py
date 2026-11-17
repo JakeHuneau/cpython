@@ -4504,6 +4504,36 @@ class OtherTests(unittest.TestCase):
             with self.assertRaises(TypeError):
                 zipf.comment = "this is an error"
 
+    def test_member_comment_too_long(self):
+        # A member comment that does not fit in the central directory is
+        # rejected when the member is added, so that the archive can
+        # still be closed.
+        maxcomment = b'x' * zipfile.ZIP_MAX_COMMENT
+        with zipfile.ZipFile(TESTFN, "w") as zipf:
+            zinfo = zipfile.ZipInfo("ok.txt")
+            zinfo.comment = maxcomment
+            zipf.writestr(zinfo, "O, for a Muse of Fire!")
+
+            zinfo = zipfile.ZipInfo("long.txt")
+            zinfo.comment = maxcomment + b'x'
+            with self.assertRaises(ValueError):
+                zipf.writestr(zinfo, "O, for a Muse of Fire!")
+            with self.assertRaises(ValueError):
+                with zipf.open(zinfo, "w"):
+                    pass
+
+            zinfo = zipfile.ZipInfo("dir/")
+            zinfo.comment = maxcomment + b'x'
+            with self.assertRaises(ValueError):
+                zipf.mkdir(zinfo)
+
+            zipf.writestr("after.txt", "Muse")
+
+        with zipfile.ZipFile(TESTFN, "r") as zipf:
+            self.assertEqual(zipf.namelist(), ["ok.txt", "after.txt"])
+            self.assertEqual(zipf.getinfo("ok.txt").comment, maxcomment)
+            self.assertIsNone(zipf.testzip())
+
     def test_change_comment_in_empty_archive(self):
         with zipfile.ZipFile(TESTFN, "a", zipfile.ZIP_STORED) as zipf:
             self.assertFalse(zipf.filelist)

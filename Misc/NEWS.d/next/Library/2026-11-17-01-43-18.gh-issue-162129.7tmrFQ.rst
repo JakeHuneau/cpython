@@ -1,0 +1,4 @@
+:meth:`zipfile.ZipFile.writestr`, :meth:`zipfile.ZipFile.open` and
+:meth:`zipfile.ZipFile.mkdir` now raise :exc:`ValueError` for a
+:class:`zipfile.ZipInfo` whose comment is longer than 65535 bytes, instead
+of failing with :exc:`struct.error` when the archive is closed.
